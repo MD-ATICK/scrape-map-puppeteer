@@ -36,9 +36,6 @@ export async function GET() {
 
 		const page = await browser.newPage();
 		await page.setViewport({ width: 1900, height: 1200 });
-		await page.setUserAgent(
-			"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120 Safari/537.36",
-		);
 
 		await page.goto(url, { waitUntil: "networkidle2", timeout: 60000 });
 		await wait(3000);
@@ -85,15 +82,17 @@ export async function GET() {
 
 				console.log(i + 1, data);
 				results.push(data as ScrapeResult);
+
 				await wait(500);
-				if (i === 4) break;
 			} catch (err) {
 				console.error("Failed at index:", i, err);
 			}
 		}
 
-		return NextResponse.json({ total: results.length, data: results });
 		// Close browser
+		await browser.close();
+
+		return NextResponse.json({ total: results.length, data: results });
 	} catch (error) {
 		console.log((error as Error).message);
 		if (browser) await browser.close();
