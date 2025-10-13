@@ -1,8 +1,7 @@
 // app/api/scrape/route.ts
 import { NextResponse } from "next/server";
 // import puppeteer from "puppeteer";
-import puppeteer from "puppeteer-core";
-import chromium from "@sparticuz/chromium";
+import chromium from "chrome-aws-lambda";
 
 const wait = (ms: number) => new Promise(res => setTimeout(res, ms));
 
@@ -27,18 +26,11 @@ export async function GET() {
 		// 	args: ["--start-maximized", "--no-sandbox"],
 		// });
 
-		browser = await puppeteer.launch({
-			defaultViewport: {
-				deviceScaleFactor: 1,
-				hasTouch: false,
-				height: 1080,
-				isLandscape: true,
-				isMobile: false,
-				width: 1920,
-			},
-			headless: "shell",
-			executablePath: await chromium.executablePath("/opt/chromium"),
-			args: puppeteer.defaultArgs({ args: chromium.args, headless: "shell" }),
+		browser = await chromium.puppeteer.launch({
+			args: chromium.args,
+			defaultViewport: chromium.defaultViewport,
+			executablePath: await chromium.executablePath,
+			headless: chromium.headless,
 		});
 
 		const page = await browser.newPage();
