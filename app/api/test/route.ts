@@ -85,8 +85,12 @@ export async function GET() {
 
 				console.log(i + 1, data);
 				results.push(data as ScrapeResult);
-
 				await wait(500);
+				console.log("catch");
+				if (i === 4) {
+					console.log("catch 4");
+					break;
+				}
 			} catch (err) {
 				console.error("Failed at index:", i, err);
 			}
