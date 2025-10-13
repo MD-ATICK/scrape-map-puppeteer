@@ -27,12 +27,11 @@ export async function GET() {
 		// 	args: ["--start-maximized", "--no-sandbox"],
 		// });
 
-		// @@ For Vercel Deployment with @sparticuz/chromium
 		browser = await puppeteer.launch({
 			args: chromium.args,
 			executablePath: await chromium.executablePath(),
+			headless: true,
 		});
-		// @@
 
 		const page = await browser.newPage();
 		await page.setViewport({ width: 1900, height: 1200 });
