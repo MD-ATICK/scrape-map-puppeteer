@@ -28,9 +28,17 @@ export async function GET() {
 		// });
 
 		browser = await puppeteer.launch({
-			args: chromium.args,
-			executablePath: await chromium.executablePath("/opt/chromium.br"),
-			headless: true,
+			defaultViewport: {
+				deviceScaleFactor: 1,
+				hasTouch: false,
+				height: 1080,
+				isLandscape: true,
+				isMobile: false,
+				width: 1920,
+			},
+			headless: "shell",
+			executablePath: await chromium.executablePath("/opt/chromium"),
+			args: puppeteer.defaultArgs({ args: chromium.args, headless: "shell" }),
 		});
 
 		const page = await browser.newPage();
