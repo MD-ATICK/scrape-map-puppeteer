@@ -36,6 +36,9 @@ export async function GET() {
 
 		const page = await browser.newPage();
 		await page.setViewport({ width: 1900, height: 1200 });
+		await page.setUserAgent(
+			"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36",
+		);
 
 		await page.goto(url, { waitUntil: "networkidle2", timeout: 60000 });
 		await wait(3000);
@@ -89,6 +92,7 @@ export async function GET() {
 			}
 		}
 
+		console.log("ready for response", results.length);
 		// Close browser
 		await browser.close();
 

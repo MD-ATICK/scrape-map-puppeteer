@@ -26,7 +26,10 @@ export default function Page() {
 	const handleScrape = async () => {
 		setLoading(true);
 		try {
-			const res = await fetch("/api/test");
+			const res = await fetch("/api/test", {
+				method: "GET",
+				cache: "no-store",
+			});
 			const data = await res.json();
 			setData(data.data || []);
 			setLoading(false);
