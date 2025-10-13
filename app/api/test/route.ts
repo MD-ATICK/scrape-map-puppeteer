@@ -1,7 +1,8 @@
 // app/api/scrape/route.ts
 import { NextResponse } from "next/server";
 // import puppeteer from "puppeteer";
-import chromium from "chrome-aws-lambda";
+import puppeteer from "puppeteer-core";
+import chromium from "@sparticuz/chromium-min";
 
 const wait = (ms: number) => new Promise(res => setTimeout(res, ms));
 
@@ -25,12 +26,12 @@ export async function GET() {
 		// 	headless: true,
 		// 	args: ["--start-maximized", "--no-sandbox"],
 		// });
-
-		browser = await chromium.puppeteer.launch({
+		const path =
+			"https://github.com/Sparticuz/chromium/releases/download/v121.0.0/chromium-v121.0.0-pack.tar";
+		browser = await puppeteer.launch({
+			executablePath: await chromium.executablePath(path),
 			args: chromium.args,
-			defaultViewport: chromium.defaultViewport,
-			executablePath: await chromium.executablePath,
-			headless: chromium.headless,
+			headless: true,
 		});
 
 		const page = await browser.newPage();
