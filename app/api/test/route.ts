@@ -85,17 +85,15 @@ export async function GET() {
 
 				console.log(i + 1, data);
 				results.push(data as ScrapeResult);
-
 				await wait(500);
+				if (i === 4) break;
 			} catch (err) {
 				console.error("Failed at index:", i, err);
 			}
 		}
 
-		// Close browser
-		await browser.close();
-
 		return NextResponse.json({ total: results.length, data: results });
+		// Close browser
 	} catch (error) {
 		console.log((error as Error).message);
 		if (browser) await browser.close();
