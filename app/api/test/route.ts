@@ -1,7 +1,8 @@
 // app/api/scrape/route.ts
 import { NextResponse } from "next/server";
-import puppeteer from "puppeteer";
-import * as cheerio from "cheerio";
+// import puppeteer from "puppeteer";
+import puppeteer from "puppeteer-core";
+import chromium from "@sparticuz/chromium";
 
 const wait = (ms: number) => new Promise(res => setTimeout(res, ms));
 
@@ -21,10 +22,17 @@ export async function GET() {
 
 	let browser;
 	try {
+		// browser = await puppeteer.launch({
+		// 	headless: true,
+		// 	args: ["--start-maximized", "--no-sandbox"],
+		// });
+
+		// @@ For Vercel Deployment with @sparticuz/chromium
 		browser = await puppeteer.launch({
-			headless: true,
-			args: ["--start-maximized", "--no-sandbox"],
+			args: chromium.args,
+			executablePath: await chromium.executablePath(),
 		});
+		// @@
 
 		const page = await browser.newPage();
 		await page.setViewport({ width: 1900, height: 1200 });
