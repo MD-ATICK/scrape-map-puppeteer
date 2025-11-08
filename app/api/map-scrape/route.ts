@@ -6,6 +6,10 @@ import axios from "axios";
 import * as cheerio from "cheerio";
 import puppeteerCore from "puppeteer-core";
 import chromium from "@sparticuz/chromium";
+import fs from "fs";
+import path from "path";
+
+
 
 const scrapedData: ScrapeResult[] = [];
 let count = 1;
@@ -147,11 +151,25 @@ export async function POST(req: NextRequest) {
   //   headless: false,
   //   args: ["--start-maximized"],
   // });
+
+  const chromePathFile = path.join(
+    process.cwd(),
+    ".chrome",
+    "chrome-path.json"
+  );
+  if (!fs.existsSync(chromePathFile)) {
+    return NextResponse.json(
+      { error: "Missing chrome path file" },
+      { status: 400 }
+    );
+  }
+
+  const chromeInfo = JSON.parse(fs.readFileSync(chromePathFile, "utf8"));
+  const executablePath = chromeInfo.path;
   const browser = await puppeteerCore.launch({
     headless: false,
     args: chromium.args,
-    // executablePath : "https://github.com/Sparticuz/chromium/releases/download/v121.0.0/chromium-v121.0.0-pack.tar"
-    executablePath: await chromium.executablePath(),
+    executablePath,
   });
   const page = await browser.newPage();
 
