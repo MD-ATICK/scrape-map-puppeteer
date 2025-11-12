@@ -12,19 +12,21 @@ import {
 import logo from "@/assets/logo.svg";
 import {
   Facebook,
+  Info,
   Instagram,
   Link2,
   Linkedin,
   Loader,
   Network,
   Twitter,
-  WholeWord,
+  Unlink,
   XIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import { Input } from "@/components/ui/input";
 import { ScrapeResult } from "@/types";
+import Link from "next/link";
 
 export default function Page() {
   const [data, setData] = useState<ScrapeResult[]>([]);
@@ -33,6 +35,8 @@ export default function Page() {
   const [search, setSearch] = useState<string>("furniture");
   const [location, setLocation] = useState<string>("New York");
   const [maxScrape, setMaxScrape] = useState<string>("3");
+
+  const [email, setEmail] = useState<string>("mdatick866@outlook.com");
 
   const handleScrape = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -56,14 +60,16 @@ export default function Page() {
       setLoading(false);
     }
   };
-  // useEffect(() => {
-  // 	fetch("/api/test")
-  // 		.then(res => res.json())
-  // 		.then(res => {
-  // 			setData(res.data || []);
-  // 			setLoading(false);
-  // 		});
-  // }, []);
+
+  const handleClick = async () => {
+    const res = await fetch("/api/email-verify", {
+      method: "POST",
+      body: JSON.stringify({ email }),
+      cache: "no-store",
+    });
+    const data = await res.json();
+    console.log(data);
+  };
 
   return (
     <div className="px-8">
@@ -77,6 +83,17 @@ export default function Page() {
             Scraping completed in {time} seconds.
           </p>
         )}
+        <div className="flex items-center gap-3">
+            <Input
+              type="email"
+              placeholder="Email "
+              value={email}
+              className=" w-72"
+              onChange={(e) => setEmail(e.target.value)} />
+              <Button onClick={handleClick}>
+                Verify
+              </Button>
+        </div>
         <form className="flex items-center gap-3" onSubmit={handleScrape}>
           <Input
             type="text"
@@ -104,6 +121,7 @@ export default function Page() {
         </form>
       </div>
       <br />
+
       {loading && (
         <div className="flex items-center text-sm gap-2 justify-center">
           <Loader size={16} className=" text-emerald-500 animate-spin" />
@@ -138,7 +156,12 @@ export default function Page() {
                 <TableHead>Phone</TableHead>
                 <TableHead>Rating</TableHead>
                 <TableHead>Reviews</TableHead>
-                <TableHead>Socials</TableHead>
+
+                <TableHead>Facebook</TableHead>
+                <TableHead>Instagram</TableHead>
+                <TableHead>Linkedin</TableHead>
+                <TableHead>Tiktok</TableHead>
+
                 <TableHead>Website</TableHead>
               </TableRow>
             </TableHeader>
@@ -153,75 +176,58 @@ export default function Page() {
                   <TableCell>{item.phone}</TableCell>
                   <TableCell>{item.rating}</TableCell>
                   <TableCell>{item.reviewsCount}</TableCell>
+
                   <TableCell>
-                    {item ? (
-                      <div className="flex gap-2">
-                        {item?.socials?.facebook && (
-                          <a
-                            href={item?.socials.facebook}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-blue-600 underline"
-                          >
-                            <Facebook size={16} />
-                          </a>
-                        )}
-                        {item?.socials?.instagram && (
-                          <a
-                            href={item?.socials.instagram}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-blue-600 underline"
-                          >
-                            <Instagram size={16} />
-                          </a>
-                        )}
-                        {item?.socials?.twitter && (
-                          <a
-                            href={item?.socials.twitter}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-blue-600 underline"
-                          >
-                            <Twitter size={16} />
-                          </a>
-                        )}
-                        {item?.socials?.x && (
-                          <a
-                            href={item?.socials.x}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-blue-600 underline"
-                          >
-                            <XIcon size={16} />
-                          </a>
-                        )}
-                        {item?.socials?.linkedin && (
-                          <a
-                            href={item?.socials.linkedin}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-blue-600 underline"
-                          >
-                            <Linkedin size={16} />
-                          </a>
-                        )}
-                        {item?.socials?.tiktok && (
-                          <a
-                            href={item?.socials.tiktok}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-blue-600 underline"
-                          >
-                            <Network size={16} />
-                          </a>
-                        )}
-                      </div>
+                    <div className=" w-full flex justify-center items-center">
+                       {item.facebookUrl ? (
+                      <Link href={item.facebookUrl}>
+                        {" "}
+                        <Facebook className=" text-emerald-500 hover:text-emerald-600" size={20} />
+                      </Link>
                     ) : (
-                      "-"
+                      <Info className=" text-muted-foreground" size={20} />
                     )}
+                    </div>
                   </TableCell>
-                    <TableCell>
+                  <TableCell>
+                    <div className=" w-full flex justify-center items-center">
+                       {item.instagramUrl ? (
+                      <Link href={item.instagramUrl}>
+                        {" "}
+                        <Instagram className=" text-emerald-500 hover:text-emerald-600" size={20} />
+                      </Link>
+                    ) : (
+                      <Info className=" text-muted-foreground" size={20} />
+                    )}
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className=" w-full flex justify-center items-center">
+                       {item.linkedinUrl ? (
+                      <Link href={item.linkedinUrl}>
+                        {" "}
+                        <Linkedin className=" text-emerald-500 hover:text-emerald-600" size={20} />
+                      </Link>
+                    ) : (
+                      <Info className=" text-muted-foreground" size={20} />
+                    )}
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className=" w-full flex justify-center items-center">
+                       {item.tiktokUrl ? (
+                      <Link href={item.tiktokUrl}>
+                        {" "}
+                        <Unlink className=" text-emerald-500 hover:text-emerald-600" size={20} />
+                      </Link>
+                    ) : (
+                      <Info className=" text-muted-foreground" size={20} />
+                    )}
+                    </div>
+                  </TableCell>
+                 
+
+                  <TableCell>
                     {item.website ? (
                       <a
                         href={item.website}
@@ -229,7 +235,7 @@ export default function Page() {
                         rel="noopener noreferrer"
                         className="text-emerald-500 flex items-center gap-2"
                       >
-                        <Link2 size={15} />
+                        <Link2 size={20} />
                         Website
                       </a>
                     ) : (

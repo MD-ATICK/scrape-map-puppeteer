@@ -1,63 +1,68 @@
-import puppeteer from "puppeteer";
-import axios from "axios";
-import { NextResponse } from "next/server";
-import * as cheerio from "cheerio";
+import { wait } from "@/lib/utils";
+import puppeteer, { Page } from "puppeteer";
 
 export async function POST() {
- 
-  const res = await axios.get("https://www.mobiledokan.co/", {
-    timeout: 15000,
-    headers: {
-      "User-Agent": "YourBot/1.0 (+https://yourdomain.example)",
-      Accept: "text/html,application/xhtml+xml",
-    },
-    responseType: "text",
+  const browser = await puppeteer.launch({
+    headless: false,
+    args: ["--no-sandbox", "--disable-setuid-sandbox", "--lang=en-US"],
   });
- const data = extractEmailsAndSocials(res.data);
-  console.log(data);
 
-  return NextResponse.json({ total: 0, data: [] });
+  const page = await browser.newPage();
+  await page.goto("https://www.mobiledokan.co/products/", {
+    waitUntil: "domcontentloaded",
+  });
 
-  // const browser = await puppeteer.launch({
-  //   headless: false,
-  //   args: [j
-  //     "--start-maximized",
-  //     "--disable-setuid-sandbox",
-  //     "--no-sandbox",
-  //     "--lang=en-US",
-  //   ],
-  // });
-  // // ,  "--force-device-scale-factor=0.3"
-  // const page = await browser.newPage();
-  // await page.setViewport({ width: 1100, height: 950 });
-  // await page.goto("https://www.mobiledokan.co/products/", {
-  //   waitUntil: "networkidle2",
-  // });
+  page.setViewport({ width: 1200, height: 800 });
 
-  // for (let i = 0; i < 5; i++) {
-  //   console.log("ITEM", i);
-  //   const items = await page.$$("ul.aps-products");
-  //   const item = items[i];
+  // Get all product links
+  const productLinks = await page.$$eval("ul.aps-products li .aps-product-title a", (anchors) =>
+    anchors.map((a) => a.href)
+  );
 
-  //   if (item) {
-  //     await item.click();
-  //   }
-  // }
+  console.log(`🧩 Found ${productLinks.length} products`);
+
+  const results = [];
+
+  for (let i = 0; i < productLinks.length; i++) {
+    const link = productLinks[i];
+    console.log(`📱 Scraping product ${i + 1}/${productLinks.length}: ${link}`);
+
+    try {
+      await page.goto(link, { waitUntil: "domcontentloaded" });
+
+      await wait(1000);
+      const product = await page.evaluate(() => {
+        const name = document.querySelector("h1.entry-title")?.textContent?.trim();
+        const price =
+          document.querySelector(".aps-price-value")?.textContent?.trim() ||
+          document.querySelector(".woocommerce-Price-amount")?.textContent?.trim() ||
+          "N/A";
+
+        const specs : { [key: string]: string } = {};
+        document.querySelectorAll(".aps-single-product-specs ul li").forEach((li) => {
+          const label = li.querySelector("strong")?.textContent?.replace(":", "").trim();
+          const value = li.childNodes[1]?.textContent?.trim();
+          if (label && value)  specs[label] = value;
+        });
+
+        const image = (document.querySelector(".aps-product-image img") as HTMLImageElement)?.src;
+
+        return { name, price, specs, image, url: window.location.href };
+      });
+
+      results.push(product);
+      await page.goBack({ waitUntil: "domcontentloaded" });
+    } catch (err) {
+      console.error(`❌ Error scraping ${link}:`, err);
+      continue;
+    }
+  }
+
+  await browser.close();
+
+  console.log("✅ Scraping completed:", results);
+  return new Response(JSON.stringify(results, null, 2), {
+    headers: { "Content-Type": "application/json" },
+  });
 }
 
-
-function extractEmailsAndSocials(html : string) {
-  const $ = cheerio.load(html);
-  // emails (simple)
-  const emails = new Set((html.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-z]{2,}/gi) || []));
-  // socials
-  const socials : string[] = [];
-  $('a[href]').each((i, el) => {
-    const href = $(el).attr('href');
-    if (!href) return;
-    if (href.includes('facebook.com')) socials.push('facebook');
-    if (href.includes('twitter.com')) socials.push('twitter');
-    if (href.includes('linkedin.com')) socials.push('linkedin');
-  });
-  return { emails: [...emails], socials: [...new Set(socials)] };
-}

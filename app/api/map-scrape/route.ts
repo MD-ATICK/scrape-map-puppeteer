@@ -1,94 +1,44 @@
 import { GOOGLE_MAP_BASE_URL, wait } from "@/lib/utils";
 import { ScrapeResult } from "@/types";
 import { NextRequest, NextResponse } from "next/server";
-import { Page } from "puppeteer";
+import puppeteer, { Page } from "puppeteer";
 import axios from "axios";
+import { extractPhonesFromJSON } from "@/lib/extract-phone-form-json";
+import { parsingBasicDetails } from "@/lib/parsing-basic-details";
+import { findEmailFormHtml } from "@/lib/find-email-form-html";
 import * as cheerio from "cheerio";
-import puppeteerCore from "puppeteer-core";
-import chromium from "@sparticuz/chromium";
-import fs from "fs";
-import path from "path";
-
-
 
 const scrapedData: ScrapeResult[] = [];
 let count = 1;
-const phoneRegex =
-  /(\+?\d{1,4}[\s-]?)?(\(?\d{2,5}\)?[\s.-]?)?\d{3,4}[\s.-]?\d{3,4}/g;
 
-import { findPhoneNumbersInText } from "libphonenumber-js";
-
-// eslint-disable-next-line
-export function extractPhonesFromJSON(raw: any) {
-  // Step 1: stringify once — scans the entire nested structure
-  const text = JSON.stringify(raw);
-
-  // Step 2: extract all phones globally (auto-detects country)
-  const results = findPhoneNumbersInText(text);
-
-  // Step 3: normalize & deduplicate
-  const unique = new Set();
-  for (const r of results) {
-    unique.add(r.number.number); // standardized +E.164 format
-  }
-
-  return [...unique];
-}
-
-function extractEmailsAndSocials(html: string) {
-  const $ = cheerio.load(html);
-  // emails (simple)
-  const emails = new Set(
-    html.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-z]{2,}/gi) || []
-  );
-
-  // socials
-  const socials: string[] = [];
-  $("a[href]").each((i, el) => {
-    const href = $(el).attr("href");
-    if (!href) return;
-    if (href.includes("facebook.com")) socials.push("facebook");
-    if (href.includes("twitter.com")) socials.push("twitter");
-    if (href.includes("linkedin.com")) socials.push("linkedin");
+const fetchHtmlData = async (url: string) => {
+  const res = await axios.get(url, {
+    timeout: 15000,
+    headers: {
+      Accept: "text/html,application/xhtml+xml",
+    },
+    responseType: "text",
   });
-  return { emails: [...emails], socials: [...new Set(socials)] };
-}
 
-// eslint-disable-next-line
-function parsePlacePreview(raw: any, count: number): ScrapeResult {
-  const info = raw?.[6] ?? [];
-  const addressArray = info?.[2];
-  const ratingBlock = info?.[4];
-  const websiteBlock = info?.[7];
-  const name =
-    typeof info?.[12] === "string"
-      ? info[12]
-      : typeof info?.[11] === "string"
-      ? info[11]
-      : null;
-  const address = Array.isArray(addressArray)
-    ? addressArray.filter(Boolean).join(", ")
-    : null;
-  const website =
-    Array.isArray(websiteBlock) && typeof websiteBlock[0] === "string"
-      ? websiteBlock[0]
-      : null;
-  const rating =
-    Array.isArray(ratingBlock) && typeof ratingBlock[7] === "number"
-      ? ratingBlock[7].toString()
-      : null;
-  const reviewsCount =
-    Array.isArray(ratingBlock) && typeof ratingBlock[8] === "number"
-      ? ratingBlock[8].toString()
-      : null;
+  return res.data;
+};
+
+
+
+async function getSocialsFromPage(html: string) {
+  const $ = cheerio.load(html);
+
+  const facebookUrl = $('a[href*="facebook.com"]').attr("href") || null;
+  const instagramUrl = $('a[href*="instagram.com"]').attr("href") || null;
+  const linkedinUrl = $('a[href*="linkedin.com"]').attr("href") || null;
+  const tiktokUrl = $('a[href*="tiktok.com"]').attr("href") || null;
+  
 
   return {
-    scrapeNo: count,
-    name,
-    address,
-    website,
-    rating,
-    reviewsCount,
+    facebookUrl,
+    instagramUrl,
+    linkedinUrl,
+    tiktokUrl,
   };
 }
 
@@ -100,14 +50,16 @@ async function placeRequestHandle(page: Page) {
   });
 
   const x = page.on("response", async (req) => {
-    const url = req.url();
-    if (url.includes("/maps/preview/place")) {
+    if (req.url().includes("/maps/preview/place")) {
       const text = await req.text();
+
+      
       if (text.startsWith(")]}'")) {
         const json = JSON.parse(text.slice(4));
-        const phoneNumbers = extractPhonesFromJSON(json);
-        const data = parsePlacePreview(json, count);
+        const phoneNumbers = extractPhonesFromJSON(JSON.stringify(json));
+        const data = parsingBasicDetails(json, count);
         count++;
+
         if (!data.website) {
           scrapedData.push({
             ...data,
@@ -115,19 +67,20 @@ async function placeRequestHandle(page: Page) {
           });
           return;
         }
-        const res = await axios.get(data.website, {
-          timeout: 15000,
-          headers: {
-            Accept: "text/html,application/xhtml+xml",
-          },
-          responseType: "text",
-        });
 
-        const { emails, socials } = extractEmailsAndSocials(res.data);
+        const html = await fetchHtmlData(data.website);
+
+        const email = findEmailFormHtml(html);
+        const socials = await getSocialsFromPage(html);
+
         scrapedData.push({
           ...data,
-          email: emails[0],
+          email,
           phone: phoneNumbers[0] as string | null,
+          facebookUrl: socials.facebookUrl,
+          instagramUrl: socials.instagramUrl,
+          linkedinUrl: socials.linkedinUrl, 
+          tiktokUrl: socials.tiktokUrl,
         });
       }
     }
@@ -147,30 +100,11 @@ export async function POST(req: NextRequest) {
   count = 0;
   scrapedData.length = 0;
 
-  // const browser = await puppeteer.launch({
-  //   headless: false,
-  //   args: ["--start-maximized"],
-  // });
-
-  const chromePathFile = path.join(
-    process.cwd(),
-    ".chrome",
-    "chrome-path.json"
-  );
-  if (!fs.existsSync(chromePathFile)) {
-    return NextResponse.json(
-      { error: "Missing chrome path file" },
-      { status: 400 }
-    );
-  }
-
-  const chromeInfo = JSON.parse(fs.readFileSync(chromePathFile, "utf8"));
-  const executablePath = chromeInfo.path;
-  const browser = await puppeteerCore.launch({
+  const browser = await puppeteer.launch({
     headless: false,
-    args: chromium.args,
-    executablePath,
+    args: ["--start-maximized"],
   });
+
   const page = await browser.newPage();
 
   await placeRequestHandle(page);
@@ -184,7 +118,6 @@ export async function POST(req: NextRequest) {
   );
 
   for (let i = 0; i < Number(maxScrape); i++) {
-    console.log("ITEM", i);
     const items = await page.$$("div.Nv2PK");
     const item = items[i];
 
@@ -196,7 +129,7 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  await wait(10000);
+  await wait(2000);
   await browser.close();
   return NextResponse.json({ total: scrapedData.length, data: scrapedData });
 }

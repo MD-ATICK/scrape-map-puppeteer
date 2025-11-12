@@ -5,17 +5,16 @@ export type ScrapeResult = {
   phone?: string | null; // phone number
   website: string | null;
   email?: string | null;
-  socials?: SocialLinks | null;
   rating?: string | null;
   reviewsCount?: string | null;
   category?: string | null;
-};
+  
+  facebookUrl?: string | null;
 
-export type SocialLinks = {
-  facebook?: string | null;
-  instagram?: string | null;
-  twitter?: string | null; // twitter or x
-  x?: string | null; // optional separate field if you want
-  linkedin?: string | null;
-  tiktok?: string | null;
+  instagramUrl?: string | null;
+
+  linkedinUrl?: string | null;
+  
+  tiktokUrl?: string | null;
+
 };
