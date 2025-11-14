@@ -1,9 +1,9 @@
+import { ScrapeResultType } from './../types/index';
 
 
- import { ScrapeResult } from "@/types";
 
     // eslint-disable-next-line
-export function parsingBasicDetails(raw: any, count: number): ScrapeResult {
+export function parsingBasicDetails(raw: any, count: number): ScrapeResultType {
   const info = raw?.[6] ?? [];
   const addressArray = info?.[2];
   const ratingBlock = info?.[4];
