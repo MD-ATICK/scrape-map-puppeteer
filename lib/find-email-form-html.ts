@@ -1,6 +1,10 @@
 
 
-export function findEmailFormHtml(html: string) {
+export function findEmailFromHtml(html?: string) {
+
+  if (!html) return null;
+
+
   const emails = new Set(
     (html.match(/\b[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.(?:[a-z]{2,10})\b/g) || [])
       // remove image or asset file matches

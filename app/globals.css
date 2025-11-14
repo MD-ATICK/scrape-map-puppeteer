@@ -3,11 +3,13 @@
 
 @custom-variant dark (&:is(.dark *));
 html, body {
-  transform: scale(0.9);
-  transform-origin: top left;
-  width: 111.11%; /* 1 / 0.9 = 1.111... */
-  height: 111.11%;
-  overflow-x: hidden;
+	/* transform-origin: top left; */
+	/* transform: scale(0.9);
+  width: 111.11%; 
+  height: 111.11%; */
+  /* overflow-x: hidden; */
+  /* zoom: 0.85; */
+  font-size: 13px;
 }
 
 @theme inline {
@@ -89,15 +91,15 @@ html, body {
 } */
 
 :root {
-	--radius: 0.625rem;
+	--radius: 0.325rem;
 	--background: oklch(0.145 0 0);
 	--foreground: oklch(0.985 0 0);
 	--card: oklch(0.205 0 0);
 	--card-foreground: oklch(0.985 0 0);
 	--popover: oklch(0.205 0 0);
 	--popover-foreground: oklch(0.985 0 0);
-	--primary: oklch(0.922 0 0);
-	--primary-foreground: oklch(0.205 0 0);
+	--primary: oklch(49.726% 0.09822 170.236);
+	--primary-foreground: oklch(100% 0.00011 271.152);
 	--secondary: oklch(0.269 0 0);
 	--secondary-foreground: oklch(0.985 0 0);
 	--muted: oklch(0.269 0 0);

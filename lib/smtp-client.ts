@@ -13,9 +13,43 @@ interface SMTPResponse {
   message: string;
 }
 
+function formatResponse(response: string) {
+  const checkBlocked = response.includes("550 5.7.1");
+  const deliverable = response.includes("250 2.1.5");
+  const undeliverable = response.includes("550-5.1.1");
+  const disposable = response.includes("250 recipient");
+  switch (true) {
+    case checkBlocked:
+      return {
+        code: 551,
+        message: "Blocked",
+      };
+    case deliverable:
+      return {
+        code: 250,
+        message: "Deliverable",
+      };
+    case undeliverable:
+      return {
+        code: 550,
+        message: "Undeliverable",
+      };
+    case disposable:
+      return {
+        code: 251,
+        message: "Disposable",
+      };
+    default:
+      return {
+        code: 251,
+        message: "Undeliverable",
+      };
+  }
+}
+
 export async function createSMTPClient(options: SMTPOptions) {
- 
   let socket: net.Socket | tls.TLSSocket | null = null;
+  let response: string;
 
   async function connect(): Promise<void> {
     const { host, port = 25, useTLS = false, timeout = 8000 } = options;
@@ -24,12 +58,16 @@ export async function createSMTPClient(options: SMTPOptions) {
       : net.createConnection({ host, port });
 
     await new Promise<void>((resolve, reject) => {
-      const timer = setTimeout(() => reject(new Error("Connection timeout")), timeout);
+      const timer = setTimeout(
+        () => reject(new Error("Connection timeout")),
+        timeout
+      );
 
       socket!.once("data", (data) => {
         clearTimeout(timer);
         const response = data.toString();
-        if (!response.startsWith("220")) reject(new Error("SMTP not ready: " + response));
+        if (!response.startsWith("220"))
+          reject(new Error("SMTP not ready: " + response));
         else resolve();
       });
 
@@ -43,15 +81,18 @@ export async function createSMTPClient(options: SMTPOptions) {
       socket.write(command + "\r\n");
 
       const onData = (data: Buffer) => {
-        const response = data.toString();
-        const code = parseInt(response.slice(0, 3), 10);
-        console.log(code, response);
+        response = data.toString();
+        const message = formatResponse(response);
+        resolve(message);
         socket?.off("data", onData);
-        resolve({ code, message: response.trim() });
       };
 
       socket.on("data", onData);
       socket.once("error", reject);
+      socket.on("end", () => {
+        const message = formatResponse(response);
+        resolve(message);
+      });
     });
   }
 

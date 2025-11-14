@@ -1,5 +1,5 @@
 import { wait } from "@/lib/utils";
-import puppeteer, { Page } from "puppeteer";
+import puppeteer from "puppeteer";
 
 export async function POST() {
   const browser = await puppeteer.launch({

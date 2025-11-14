@@ -1,4 +1,5 @@
 import { clsx, type ClassValue } from "clsx"
+import { differenceInHours, format, formatDistanceToNow } from "date-fns";
 import { Page } from "puppeteer-core";
 import { twMerge } from "tailwind-merge"
 
@@ -23,3 +24,17 @@ export const executablePath = "https://github.com/Sparticuz/chromium/releases/do
 // 	headless: true,
 // });
 // JUST COPY PASTE TOP SECTION
+
+export function formatSmartDate(dateString: string | number | Date) {
+  const date = new Date(dateString);
+
+  const hours = differenceInHours(Date.now(), date);
+
+  // Less than 24 hours → use "x hours ago"
+  if (hours < 24) {
+    return formatDistanceToNow(date, { addSuffix: true });
+  }
+
+  // More than 1 day → show real date
+  return format(date, "MMM dd, yyyy"); // example: "Nov 14, 2025"
+}

@@ -7,13 +7,14 @@ export async function POST(req: NextRequest) {
   const { email } = await req.json();
 
   if (!email) {
-    return NextResponse.json({ error: "Missing email" }, { status: 400 });
+    return NextResponse.json(
+      { code: 550, message: "Missing email" },
+      { status: 400 }
+    );
   }
 
   try {
     const mxRecords = await dns.promises.resolveMx(email.split("@")[1]);
-    console.log(mxRecords);
-
     const client = await createSMTPClient({
       host: mxRecords[0].exchange,
       port: 25,
@@ -26,12 +27,11 @@ export async function POST(req: NextRequest) {
     const rcptResp = await client.rcpt(email);
     await client.quit();
 
-    console.log(rcptResp);
-
-    return NextResponse.json({ success: true, message: "Email Verified" });
+    return NextResponse.json({ success: true, ...rcptResp });
   } catch (error) {
+    console.log(error);
     return NextResponse.json(
-      { error: "Not Exist" + " " + (error as Error).message },
+      { code: 251, message: "Invalid" },
       { status: 500 }
     );
   }
