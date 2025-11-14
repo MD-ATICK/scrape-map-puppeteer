@@ -18,14 +18,14 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { cn } from "@/lib/utils";
+import { cn, formatSmartDate } from "@/lib/utils";
 import { ScrapeResultType } from "@/types";
 import { Skeleton } from "./ui/skeleton";
 import { Badge } from "./ui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
 import { toast } from "sonner";
 import { DynamicPagination } from "./dynamic-pagination";
-import { useEffect, useState } from "react";
+import {  useState } from "react";
 import { Input } from "./ui/input";
 import { format } from "date-fns";
 
@@ -105,6 +105,7 @@ export default function LeadView({
               <TableRow>
                 <TableHead>No</TableHead>
                 <TableHead>Name</TableHead>
+                <TableHead>Category</TableHead>
                 <TableHead>Address</TableHead>
                 <TableHead>Email</TableHead>
                 <TableHead>Code</TableHead>
@@ -136,6 +137,7 @@ export default function LeadView({
                 <TableRow key={idx}>
                   <TableCell>{idx + 1}</TableCell>
                   <TableCell>{item.name}</TableCell>
+                  <TableCell>{item.category || ''}</TableCell>
                   <TableCell> {item.address && (
                       <Tooltip>
                         <TooltipTrigger>
@@ -266,7 +268,8 @@ export default function LeadView({
                   <TableCell>
                     {item.lead_scraped_at ? (
                       <span className=" px-2 py-1 font-medium">
-                        {format(new Date(item.lead_scraped_at), "dd MMM yyyy, hh:mm a")}
+                        {/* {format(new Date(item.lead_scraped_at), "dd MMM yyyy, hh:mm a")} */}
+                        {formatSmartDate(item.lead_scraped_at)}
                       </span>
                     ) : (
                       "-"

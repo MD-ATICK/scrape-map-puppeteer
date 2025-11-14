@@ -60,10 +60,11 @@ export default function Page() {
       const data = await res.json();
       const scarpedData = localStorage.getItem("scrapedData") || "[]";
       const parsedData = JSON.parse(scarpedData);
-      parsedData.push(...data.data);
+      const resultData = (data.data as ScrapeResultType[]).map((item) => ({...item, category: currentFetching.category }));
+      parsedData.push(...resultData);
       setDownloadLimit(parsedData.length || 0);
       localStorage.setItem("scrapedData", JSON.stringify(parsedData));
-      setData((prev) => [...prev, ...data.data]);
+      setData((prev) => [...prev, ...resultData]);
       setLoading(false);
       setFetchingData((prev) => {
         const newData = prev.map((item) => {
@@ -180,7 +181,7 @@ export default function Page() {
             className=" w-72"
             onChange={(e) => setMaxScrape(e.target.value)}
           />
-          <Button type="submit" size={"sm"}>
+          <Button type="submit" size={"sm"} disabled={loading}>
             {/* {loading ? <Loader className=" animate-spin" /> : "Scrape"} */}
             New Scrape
           </Button>

@@ -71,7 +71,7 @@ async function placeRequestHandle(page: Page) {
           scrapedData.push({
             ...data,
             phone: phoneNumbers[0] as string | null,
-            lead_scraped_at: date,
+            lead_scraped_at: date.toISOString(),
           });
           return;
         }
@@ -97,7 +97,7 @@ async function placeRequestHandle(page: Page) {
           instagramUrl: socials.instagramUrl,
           linkedinUrl: socials.linkedinUrl,
           tiktokUrl: socials.tiktokUrl,
-          lead_scraped_at: date,
+          lead_scraped_at: date.toISOString(),
         });
       }
     }
