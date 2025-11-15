@@ -70,7 +70,7 @@ async function placeRequestHandle(page: Page) {
         if (!data.website) {
           scrapedData.push({
             ...data,
-            phone: phoneNumbers[0] as string | null,
+            phone: phoneNumbers[0] as string | "null",
             lead_scraped_at: date.toISOString(),
           });
           return;
@@ -89,14 +89,13 @@ async function placeRequestHandle(page: Page) {
 
         scrapedData.push({
           ...data,
-          email,
-          phone: phoneNumbers[0] as string | null,
-          facebookUrl: socials.facebookUrl,
-          status_code: verifiedData.code,
+          email : email || 'null',
+          phone: phoneNumbers[0] as string || "null" ,
+          facebookUrl: socials.facebookUrl || 'null',
           email_status: verifiedData.message,
-          instagramUrl: socials.instagramUrl,
-          linkedinUrl: socials.linkedinUrl,
-          tiktokUrl: socials.tiktokUrl,
+          instagramUrl: socials.instagramUrl || 'null',
+          linkedinUrl: socials.linkedinUrl || 'null',
+          tiktokUrl: socials.tiktokUrl || 'null',
           lead_scraped_at: date.toISOString(),
         });
       }

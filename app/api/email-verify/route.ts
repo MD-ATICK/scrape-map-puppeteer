@@ -8,7 +8,7 @@ export async function POST(req: NextRequest) {
 
   if (!email) {
     return NextResponse.json(
-      { code: 550, message: "Missing email" },
+      { message: "Missing email" },
       { status: 400 }
     );
   }
@@ -31,7 +31,7 @@ export async function POST(req: NextRequest) {
   } catch (error) {
     console.log(error);
     return NextResponse.json(
-      { code: 251, message: "Invalid" },
+      {  message: "Invalid" },
       { status: 500 }
     );
   }

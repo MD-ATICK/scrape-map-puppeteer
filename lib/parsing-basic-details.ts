@@ -1,8 +1,6 @@
-import { ScrapeResultType } from './../types/index';
+import { EmailStatus, ScrapeResultType } from "./../types/index";
 
-
-
-    // eslint-disable-next-line
+// eslint-disable-next-line
 export function parsingBasicDetails(raw: any, count: number): ScrapeResultType {
   const info = raw?.[6] ?? [];
   const addressArray = info?.[2];
@@ -13,22 +11,22 @@ export function parsingBasicDetails(raw: any, count: number): ScrapeResultType {
       ? info[12]
       : typeof info?.[11] === "string"
       ? info[11]
-      : null;
+      : "null";
   const address = Array.isArray(addressArray)
     ? addressArray.filter(Boolean).join(", ")
-    : null;
+    : "null";
   const website =
     Array.isArray(websiteBlock) && typeof websiteBlock[0] === "string"
       ? websiteBlock[0]
-      : null;
+      : "null";
   const rating =
     Array.isArray(ratingBlock) && typeof ratingBlock[7] === "number"
       ? ratingBlock[7].toString()
-      : null;
+      : "null";
   const reviewsCount =
     Array.isArray(ratingBlock) && typeof ratingBlock[8] === "number"
       ? ratingBlock[8].toString()
-      : null;
+      : "null";
 
   return {
     scrapeNo: count,
@@ -37,5 +35,14 @@ export function parsingBasicDetails(raw: any, count: number): ScrapeResultType {
     website,
     rating,
     reviewsCount,
+    phone: "null",
+    email: "null",
+    category: "null",
+    facebookUrl: "null",
+    instagramUrl: "null",
+    linkedinUrl: "null",
+    tiktokUrl: "null",
+    lead_scraped_at: "null",
+    email_status: EmailStatus.Missing,
   };
 }

@@ -1,25 +1,33 @@
+export enum EmailStatus {
+  Deliverable = "Deliverable",
+  Undeliverable = "Undeliverable",
+  Disposable = "Disposable",
+  Invalid = "Invalid",
+  Blocked = "Blocked",
+  Missing = "Missing Email",
+}
+
 export type ScrapeResultType = {
   scrapeNo: number;
-  name: string | null;
-  address: string | null;
-  phone?: string | null; // phone number
-  website: string | null;
-  email?: string | null;
-  email_status?: string | null;
-  status_code?: number | null;
-  rating?: string | null;
-  reviewsCount?: string | null;
-  category?: string | null;
+  name: string;
+  address: string;
+  phone: string; // phone number
+  website: string;
+  email: string;
+  email_status: EmailStatus;
+  rating: string;
+  reviewsCount: string;
+  category: string;
 
-  facebookUrl?: string | null;
+  facebookUrl: string;
 
-  instagramUrl?: string | null;
+  instagramUrl: string;
 
-  linkedinUrl?: string | null;
+  linkedinUrl: string;
 
-  tiktokUrl?: string | null;
+  tiktokUrl: string;
 
-  lead_scraped_at?: string | null;
+  lead_scraped_at: string;
 };
 
 export type FetchingDataType = {

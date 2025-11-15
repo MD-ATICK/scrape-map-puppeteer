@@ -9,7 +9,6 @@ interface SMTPOptions {
 }
 
 interface SMTPResponse {
-  code: number;
   message: string;
 }
 
@@ -21,27 +20,22 @@ function formatResponse(response: string) {
   switch (true) {
     case checkBlocked:
       return {
-        code: 551,
         message: "Blocked",
       };
     case deliverable:
       return {
-        code: 250,
         message: "Deliverable",
       };
     case undeliverable:
       return {
-        code: 550,
         message: "Undeliverable",
       };
     case disposable:
       return {
-        code: 251,
         message: "Disposable",
       };
     default:
       return {
-        code: 251,
         message: "Undeliverable",
       };
   }
@@ -66,9 +60,10 @@ export async function createSMTPClient(options: SMTPOptions) {
       socket!.once("data", (data) => {
         clearTimeout(timer);
         const response = data.toString();
-        if (!response.startsWith("220"))
-          reject(new Error("SMTP not ready: " + response));
-        else resolve();
+        if (!response.startsWith("220")) {
+          console.log("SMTP Server response:", response);
+          reject(null);
+        } else resolve();
       });
 
       socket!.once("error", reject);
